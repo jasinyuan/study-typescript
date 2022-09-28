@@ -1,0 +1,295 @@
+相比JS，TS增加了以下5个特性：
+
+更丰富的类型、使用下一代JS语法能力、TS特有的概念（接口）、元编程能力（装饰器）、可配置能力。
+
+其中类型是最重要的，所以才叫“Type”Script。
+
+提到类型，JS其实也有类型，基础类型如字符串、数字，复杂类型如数组、对象，JS都可以在运行时获得相应变量的类型。而使用TS后，就可以在开发时获得类型检查，获得IDE更好的支持。
+
+此外，TS还引入了除JS基础类型外一些特有的类型，比如【any】、【never】、【Enum】等等，使用关键词【type】还可以定义自定义类型，使得我们拥有更强大的“描述”能力。
+
+这里还有两个定义函数类型的小技巧：函数定义中返回值类型一般不进行声明，让编辑器进行类型推断；回调函数类型定义一般将返回值设为void，把重点放在回调函数的参数上，因为回调函数并不关心返回值类型。
+
+引入类型检查只是为了提高开发效率，对生产环境运行的代码没有影响。
+
+学会配置TS也是非常重要的，在项目根目录运行命令，会自动生成TS的配置文件【tsconfig.json】。
+
+tsc --init
+生成的配置文件中，所有的属性都标有注释。我们开发时最需要关心的是这4个属性，rootDir（设置输入文件夹）、outDir（设置输出文件夹）、target（指定编译后的JS版本）、lib（设定TS的上下文）。
+
+lib属性在target为es6时，默认包含dom、es2015、dom.iterable、scripthost。可以理解为TS内置的类型。
+
+如果开发时想要使用TS代码来调试，需要启用sourceMap属性。
+
+
+JS语法这章，本身也已经比较熟悉了，而且严格来说这不属于TS的特性。把以下5个语法搞明白就差不多了：
+
+let和const
+
+箭头函数
+
+函数默认参数
+
+展开表达式
+
+数组、对象的解构赋值
+
+这些语法本质上还是语法糖，让我们的代码实现更优雅。
+
+ES6中还引入了【class】关键字，使得我们可以更方便的定义类。TS在这基础上又对功能进行了增强：
+
+// 定义 Person 类
+class Person {
+  // 类属性
+  type: string;
+  // 类私有属性
+  protected name: string;
+  private age: number;
+
+  // getter
+  get personName() {
+    return "person" + this.name;
+  }
+
+  // setter
+  set personName(v: string) {
+    this.name = "set person" + v;
+  }
+
+  get personAge() {
+    return this.age;
+  }
+
+  // 类构建方法
+  constructor(n: string, a: number) {
+    this.type = "人类";
+    this.name = n;
+    this.age = a;
+  }
+
+  // 类方法
+  greet() {
+    console.log("你好");
+  }
+}
+
+// 使用关键词 extends 定义 Fronter 类继承 Person 类
+class Fronter extends Person {
+  constructor(n: string, a: number) {
+    super(n, a); // 继承类需要调用父类构建方法
+    this.type = "前端人类";
+  }
+
+  greetWithInfo() {
+    // private 与 protected 关键字同样是将属性设置为私有属性
+    const age = this.age; // 无法访问，private 修饰的属性只有 Person 类本身可以访问，
+    const name = this.name; // 可以访问，protected 设置的属性除了类本身外，继承类中也能访问
+    console.log(`你好，我叫${name}，我的年龄是${age}。`);
+  }
+}
+
+const person = new Fronter("前端人类", 99);
+
+console.log("person.type: ", person.type); // 人类
+console.log("person.name: ", person.name); // 私有属性，class 外部无法直接访问
+console.log("person.personName: ", person.personName); // 通过 getter 获取想要的私有属性
+person.personName = "前端人类plus"; // 通过 setter 设置属性
+此外还有 static 关键字，可以修饰类的属性或方法，被修饰的属性方法可以不需要实例化直接访问，但是类的实例无法访问。另一个 abstract 关键词，修饰类方法，可以让继承类强制实现被修饰的方法。
+
+abstract 与 protected 是 TS 引入的特性，原生 JS 没有这个概念。
+
+类是JS中的概念，而TS还引入了全新的概念——接口（interface），一种可以描述Object的结构方法。
+
+在实际项目开发中，函数的参数一般都用Object来传递，这样可以方便后续的拓展。各种各样的Object很多，结构也大不相同，这样如果要进行静态类型检查，就需要有定义Object中“长什么样”的功能。
+
+目前为止，我们可以通过 type 或类/抽象类来实现这个功能，那为什么还需要 interface？
+
+interface 与 type 的区别：两者几乎可以互相代替。个人猜想，可能在实际运用中，interface在语义上更好。
+
+interface 与抽象类的区别：interface 更纯粹的描述 class 的“结构”，不包含任何实现，而抽象类中可能还有自己实现的方法。
+
+接口中的属性可以用 readonly 描述，而不能用 public 或 private。
+
+视频中还有一个章节介绍了TS特性，其中有2个特性需要重点关注一下。
+
+第一个叫 type casting，就是强制类型转换。在某些情况下，TS无法自动推断出一些变量类型，比如通过 document.querySelector("#id") 只能得到  Element | null 的类型，而我们作为开发者，自然知道选择的元素到底是什么类型元素，就可以通过强制类型转换获得更准确的描述，语法如下：
+
+// 通过 <> 符号进行转换
+const input = <HTMLInputElement>document.querySelector('#input');
+// 第二种方法，通过 as 关键字进行转换
+const canvas = document.querySelector('#canvas') as HTMLCanvasElement;
+在某些框架中比如 React，"<>"是保留的，就可以使用第二种方法进行转换。
+
+第二个值得关注的特性就是 optional chaining，可选链。通过可选链可以省去大量需要手动判断 undefined 或 null 的情况，让我们安全的访问可能是undefined对象的属性，使用方法如下：
+
+const mockRes: {data: {name: string} | null} = {
+  data: {
+    name: '前端人'
+  }
+}
+
+// TS 代码
+const data = mockRes.data?.name
+
+// 编译后的 JS
+// const data = (_a = mockRes.data) === null || _a === void 0 ? void 0 : _a.name;
+
+
+泛型也是TS中比较重要的概念，有些方法不在乎它“内部”是什么类型的值，但是通过泛型，我们可以定义出“内部”的类型，方便我们编程。典型例子：Promise<类型>。
+
+函数通过【function 函数名<T>】来使用泛型：
+
+// 函数使用泛型
+function cosplay<T>(x: T) {
+  return x;
+}
+
+cosplay("你好").trim(); // 正常
+cosplay(3).trim(); // 报错，number 类型没有 .trim() 方法
+
+// 如果不使用泛型，只能使用联合类型
+function cosplay1(x: string | number) {
+  return x;
+}
+
+// 联合类型使用时不免不够灵活
+cosplay1("你好").trim(); // 报错，虽然我们知道可以这样使用，但是编译器不知道
+(cosplay1("你好") as string).trim(); // 需要强制类型转换才能调用
+cosplay1(3).trim(); // 依然报错
+
+// 或者干脆使用 any，放弃类型检查
+function cosplay2(x: any) {
+  return x;
+}
+
+cosplay2("你好").trim(); // 正常使用
+cosplay2(3).trim(); // 可以通过编译，但是运行时报错，更不好。
+泛型与联合类型，这是两种完全不同的概念，而且无法用联合类型替代泛型。泛型的作用是“锁定”类型，而联合类型是“包容”类型。
+
+除了函数之外，类也可以使用泛型，通过【class 类名<T>】来使用。
+
+此外还可以通过 extends 关键字来限制泛型的类型
+
+// 在上面的例子中，通过 extends 关键字，将 T 的类型限制为 string
+function cosplay<T extends string>(x: T) {
+  return x;
+}
+
+cosplay("你好").trim(); // 正常
+cosplay(3); // 错误，不需要调用 .trim() 方法，cosplay 函数传入非 string 类型参数时直接可以检查出错误。
+泛型就是由一个主类型+一个或多个副类型组成的类型。泛型对于函数的意义就是可以动态的“设置”参数类型与返回值类型，提高可重用性。
+
+
+装饰器对JS开发者来说可能是一个比较陌生的概念，它的定义如下
+
+“装饰器（Decorators）为我们在类的声明及成员上通过元编程语法添加标注提供了一种方式。”
+
+有两点值得注意，第一，装饰器属于元编程，是方便开发者的功能。第二，装饰器只能在类的声明及成员上使用，具体就是5个地方（类、属性、getter/setter、类方法、类方法参数）。
+
+在TS中使用装饰器需要在 tsconfig.json 中开启 experimentalDecorators 属性，这个配置默认是关闭的
+
+{
+    "compilerOptions": {
+        "experimentalDecorators": true
+    }
+}
+最简单的例子
+
+function Logger(constructor: Function) {
+  console.log("Logger ");
+//   console.log(constructor);
+}
+
+@Logger
+class ExampleClass {
+
+}
+控制台输出
+
+Logger
+例子中我们使用了 Logger 函数来装饰了 ExampleClass 类。可以看到我们没有 new ExampleClass() 来获取实例，装饰器在被装饰的变量定义时就生效了，而不是执行时。
+
+实战中，更常用装饰器工厂来使用装饰器，这使得我们可以给装饰器传入自定义参数
+
+function LoggerFactory(logDesc: string) {
+  console.log("LoggerFactory");
+  return function Logger(constructor: Function) {
+    console.log(logDesc);
+    // console.log(constructor);
+  };
+}
+
+@LoggerFactory("mm")
+class ExampleClass {}
+控制台输出
+
+LoggerFactory
+mm
+对于多个装饰器，执行顺序与到被装饰的成员距离有关，距离越远越靠后执行
+
+function a(constructor: Function) {
+  console.log("a ");
+}
+
+function b(constructor: Function) {
+  console.log("b ");
+}
+
+function c(constructor: Function) {
+  console.log("c ");
+}
+
+@c
+@b
+@a
+class ExampleClass {}
+控制台输出
+
+a
+b
+c
+装饰器本质是一个函数，装饰不同的类型获得不同的参数。
+
+
+视频第九章作者用纯TS实现了一个看板小Demo，包含输入、验证、渲染、拖拽功能，对之前章节介绍的特性做一个总结。
+
+
+第十章讲了命名空间（namespace）和模块。命名空间同ES6模块差不多，都是用来组织你的代码，是TS提供的分割代码方法。
+
+命名空间通过namespace定义，export导出，然后使用/// <reference path="..." />语法导入对应的文件。
+
+命名空间的限制比较多，不同文件夹内的文件，需要放在相同的namespace中，才能实现共享。namespace中引用的文件，默认不会被打包。需要开启tsconfig.json中outFile配置才会被打包进编译文件。
+
+而且相比ES6模块，命名空间有个最大的问题就是reference的依赖关系，需要人工保证先后循序及是否引入。否则可以通过编译，但是运行时会报错。
+
+考虑到TypeScript 1.5版本前，命名空间叫做module，猜测可能这是ES6出现前TS提供的“模块”解决方案，但是在ES6模块出现后，命名空间的作用可能不大了。
+
+网上说命名空间可以解决命名冲突，其实ES模块方案也可以很方便的解决命名冲突
+
+首先需要将tsconfig.json中module设置为"es2015"
+
+// module.export.ts
+export const name = "mm";
+
+export const profession = "front-end-human";
+
+export default {
+  name,
+  profession,
+};
+
+
+// module.import.ts
+// ES 模块有三种导入方法
+import * as person from "./module.export.js";
+import { profession as pf } from "./module.export.js";
+import info from "./module.export.js";	// 需要配合 export default 使用
+
+console.log(person.name);
+console.log(pf);
+console.log(info.name);
+控制台输出
+
+mm
+front-end-human
+mm 作者：无限咪咪 https://www.bilibili.com/read/cv17159012 出处：bilibili
